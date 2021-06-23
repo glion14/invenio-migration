@@ -1,7 +1,13 @@
+import 'reflect-metadata';
+import {plainToClass} from "class-transformer";
+import HitExtractor from "./HitExtractor";
+import Hit from "./Hit";
 "use strict";
 
 global.fetch = require("node-fetch");
 const token = process.env.RDM_TOKEN
+
+
 
 const requestInit: RequestInit = {
     headers: {
@@ -9,13 +15,15 @@ const requestInit: RequestInit = {
     }
 }
 
+async function init () {
+    const hitId = "0f99d-w2e63";
+    const apiResponse: Hit  = await fetch(`https://test.researchdata.tuwien.ac.at/api/records/${hitId}`, requestInit)
+        .then(response => response.json())
+        // .then(json => json.hits)
+        .then(hit => plainToClass(Hit, hit))
 
-const apiResponse = fetch('https://test.researchdata.tuwien.ac.at/api/records', requestInit)
-    .then(response => response.json())
-    .then(json => json.hits);
-    // .then(hits => console.log(hits));
+    const hitExtractor = new HitExtractor();
+    hitExtractor.process(apiResponse, hitId)
+}
 
-
-const recordInformation = fetch('https://test.researchdata.tuwien.ac.at/api/records/rcv4p-brg47', requestInit)
-    .then(response => response.json())
-    .then(json => console.log(json));
+init()

@@ -1,3 +1,5 @@
+Install npm
+Run npm run start
 
 
 # Data
