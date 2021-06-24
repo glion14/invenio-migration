@@ -19,4 +19,8 @@ export default class Files {
     private entries: FileEntry[];
     private defaultPreview: string;
     private order: any[];
+
+    getEntries(): FileEntry[] {
+        return this.entries;
+    }
 }

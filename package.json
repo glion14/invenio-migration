@@ -17,6 +17,7 @@
     "typescript": "^4.2.4"
   },
   "dependencies": {
+    "axios": "^0.21.1",
     "class-transformer": "^0.4.0",
     "reflect-metadata": "^0.1.13"
   }
