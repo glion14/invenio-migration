@@ -16,6 +16,19 @@ export default class Hit {
     public getFileLink(): string {
         return this.links.files;
     }
+
+    public getAccess(): Access {
+        return this.access
+    }
+
+    public  getMetadata(): Metadata {
+        return this.metadata
+    }
+
+    public getFiles(): HitFiles {
+        return this.files;
+    }
+
 }
 
 export type Versions = {
@@ -61,10 +74,22 @@ export type Parent = {
 export type Metadata = {
     publisher: string,
     description: string,
+    additionalDescription: string,
     rights: any[],
     creators: any[],
     publicationDate: string,
     dates: any[],
     title: string,
-    resourceType: any
+    additionalTitles: any[],
+    resourceType: any,
+    subjects: any[], //experimental
+    contributors: any[],
+    languages: any[],
+    relatedIdentifiers: any[],
+    sizes: any[],
+    formats: any[],
+    version: string,
+    // locations:
+    fundingReferences: any[], //experimental
+    // owners:
 }

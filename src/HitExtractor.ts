@@ -1,10 +1,12 @@
-import {plainToClass} from "class-transformer";
+import {classToPlain, plainToClass} from "class-transformer";
 import Hit from "./Hit";
 import Files from "./Files";
 import axios, {AxiosRequestConfig, AxiosResponse} from "axios";
 import FileDownloader from "./FileDownloader";
+import RecordDraft from "./RecordDraft";
 
 export default class HitExtractor {
+    private token: string = process.env.RDM_TOKEN;
     private readonly fileDownloader: FileDownloader;
 
     constructor() {
@@ -23,6 +25,11 @@ export default class HitExtractor {
 
 
         // start creating a draft with Hit object
+        const recordDraft = new RecordDraft(hit)
+        const baseUrl = "https://inveniordm.web.cern.ch/api/records"
+        await this.pushInitialDraftRecord(recordDraft, baseUrl)
+
+        // push draft and get it's new ID
 
         // continue with uploading files to the draft from local storage
 
@@ -31,14 +38,24 @@ export default class HitExtractor {
     }
 
     async retrieveFileEntries(fileLink: string): Promise<Files> {
-        const token = process.env.RDM_TOKEN;
-
         const axiosConfig: AxiosRequestConfig = {
             headers: {
-                Authorization: `Bearer ${token}`
+                Authorization: `Bearer ${this.token}`
             }
         }
         return await axios.get(fileLink, axiosConfig)
             .then(response => plainToClass(Files, response.data));
+    }
+
+    async pushInitialDraftRecord(recordDraft: RecordDraft, newRepoUrl: string): Promise<void> {
+        const axiosPostConfig: AxiosRequestConfig = {
+            headers: {
+                Authorization: `Bearer ${this.token}`,
+                'Content-Type': 'application/json'
+            }
+        }
+
+        return await axios.post(newRepoUrl, classToPlain(recordDraft), axiosPostConfig)
+            .then(result => console.log(result))
     }
 }

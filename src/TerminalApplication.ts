@@ -15,9 +15,11 @@ const requestInit: RequestInit = {
     }
 }
 
+const baseUrl = "https://inveniordm.web.cern.ch"
+
 async function init () {
-    const hitId = "0f99d-w2e63";
-    const apiResponse: Hit  = await fetch(`https://test.researchdata.tuwien.ac.at/api/records/${hitId}`, requestInit)
+    const hitId = "vf27a-d6s83";
+    const apiResponse: Hit  = await fetch(baseUrl + `/api/records/${hitId}`, requestInit)
         .then(response => response.json())
         // .then(json => json.hits)
         .then(hit => plainToClass(Hit, hit))
