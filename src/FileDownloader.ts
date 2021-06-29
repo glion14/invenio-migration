@@ -2,9 +2,12 @@ import fs from 'fs';
 import axios, {AxiosRequestConfig} from "axios";
 
 export default class FileDownloader {
-    private readonly host = 'https://test.researchdata.tuwien.ac.at';
+    private readonly host;
     private readonly token = process.env.RDM_TOKEN;
 
+    constructor(hostUrl: string) {
+        this.host = hostUrl
+    }
 
     /**
      * Downloads file binary, creates temporary directory and writes the binary to it with the same filename.

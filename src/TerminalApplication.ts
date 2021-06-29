@@ -18,13 +18,13 @@ const requestInit: RequestInit = {
 const baseUrl = "https://inveniordm.web.cern.ch"
 
 async function init () {
-    const hitId = "vf27a-d6s83";
+    const hitId = "z0717-4qm62";
     const apiResponse: Hit  = await fetch(baseUrl + `/api/records/${hitId}`, requestInit)
         .then(response => response.json())
         // .then(json => json.hits)
         .then(hit => plainToClass(Hit, hit))
 
-    const hitExtractor = new HitExtractor();
+    const hitExtractor = new HitExtractor(baseUrl, baseUrl);
     hitExtractor.process(apiResponse, hitId)
 }
 

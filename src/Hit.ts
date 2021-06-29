@@ -29,6 +29,9 @@ export default class Hit {
         return this.files;
     }
 
+    public  getId(): string {
+        return this.id;
+    }
 }
 
 export type Versions = {
