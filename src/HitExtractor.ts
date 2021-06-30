@@ -37,9 +37,11 @@ export default class HitExtractor {
             .then(draftId => this.fileUploader.startFileUploading(files, draftId))
             //iterate and upload all files
             .then(draftId => {
+                console.info(`Draft id -> ${draftId}`)
                 files.getEntries().forEach(file => {
                     console.info(`Uploading file ${file.key}`)
-                    this.fileUploader.uploadSingleFile(file.key, draftId);
+                    this.fileUploader.uploadSingleFile(file.key, draftId)
+                        .then(ignored => this.fileUploader.confirmUpload(file.key, draftId))
                     //maybe logging of progress ?
                 })
             })
@@ -47,6 +49,8 @@ export default class HitExtractor {
             .catch(reason => console.error(reason))
 
         // verify files metadata
+
+
 
     }
 
