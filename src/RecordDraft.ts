@@ -26,9 +26,9 @@ export default class RecordDraft {
         }
 
         return {
-            record:record,
-            files:files,
-            embargo:embargo
+            record: record,
+            files: files,
+            embargo: embargo
         }
     }
 

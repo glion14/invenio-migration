@@ -7,7 +7,7 @@ import RecordDraft from "./RecordDraft";
 import FileUploader from "./FileUploader";
 
 export default class HitExtractor {
-    private token: string = process.env.RDM_TOKEN;
+    private token: string = process.env.SOURCE_TOKEN;
     private readonly fileDownloader: FileDownloader;
     private readonly fileUploader: FileUploader;
 
@@ -20,7 +20,6 @@ export default class HitExtractor {
         // check files and get entries to objects
         const fileLink = hit.getFileLink();
         const files: Files = await this.retrieveFileEntries(fileLink);
-        console.log(files);
 
         // download files one by one to local storage
         files.getEntries()
@@ -32,26 +31,21 @@ export default class HitExtractor {
         const baseUrl = "https://inveniordm.web.cern.ch/api/records"
 
 
-        await this.pushInitialDraftRecord(recordDraft, baseUrl)
-            //signal upload of all files
-            .then(draftId => this.fileUploader.startFileUploading(files, draftId))
-            //iterate and upload all files
-            .then(draftId => {
-                console.info(`Draft id -> ${draftId}`)
-                files.getEntries().forEach(file => {
-                    console.info(`Uploading file ${file.key}`)
-                    this.fileUploader.uploadSingleFile(file.key, draftId)
-                        .then(ignored => this.fileUploader.confirmUpload(file.key, draftId))
-                    //maybe logging of progress ?
-                })
-            })
+        const pushedDraftId = await this.pushInitialDraftRecord(recordDraft, baseUrl);
+        await this.fileUploader.startFileUploading(files, pushedDraftId);
 
-            .catch(reason => console.error(reason))
+        for (const file of files.getEntries()) {
+            console.info(`Uploading file ${file.key}`);
+            try {
+                await this.fileUploader.uploadSingleFile(file.key, pushedDraftId);
+                await this.fileUploader.confirmUpload(file.key, pushedDraftId);
+            } catch (e) {
+                console.error(e);
+            }
+
+        }
 
         // verify files metadata
-
-
-
     }
 
     async retrieveFileEntries(fileLink: string): Promise<Files> {

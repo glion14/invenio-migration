@@ -3,11 +3,10 @@ import {plainToClass} from "class-transformer";
 import HitExtractor from "./HitExtractor";
 import Hit from "./Hit";
 "use strict";
+require('dotenv').config()
 
 global.fetch = require("node-fetch");
-const token = process.env.RDM_TOKEN
-
-
+const token = process.env.SOURCE_TOKEN
 
 const requestInit: RequestInit = {
     headers: {
@@ -17,7 +16,7 @@ const requestInit: RequestInit = {
 
 const baseUrl = "https://inveniordm.web.cern.ch"
 
-async function init () {
+export async function init () {
     const hitId = "z0717-4qm62";
     const apiResponse: Hit  = await fetch(baseUrl + `/api/records/${hitId}`, requestInit)
         .then(response => response.json())

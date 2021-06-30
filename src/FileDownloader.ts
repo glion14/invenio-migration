@@ -3,7 +3,7 @@ import axios, {AxiosRequestConfig} from "axios";
 
 export default class FileDownloader {
     private readonly host;
-    private readonly token = process.env.RDM_TOKEN;
+    private readonly token = process.env.SOURCE_TOKEN;
 
     constructor(hostUrl: string) {
         this.host = hostUrl

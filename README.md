@@ -1,6 +1,9 @@
 Install npm
 Run npm run start
 
+# How to run it
+npm install
+npm run start 
 
 # Data
 

@@ -5,7 +5,7 @@ import {classToPlain} from "class-transformer";
 
 export default class FileUploader {
     private readonly host;
-    private readonly token = process.env.RDM_TOKEN;
+    private readonly token = process.env.SOURCE_TOKEN;
     private readonly temporaryDirectory = './tmp'
 
     constructor(hostUrl: string) {
@@ -18,8 +18,7 @@ export default class FileUploader {
      * @param files
      * @param draftId
      */
-    async startFileUploading(files: Files, draftId: string): Promise<string> {
-
+    async startFileUploading(files: Files, draftId: string): Promise<void> {
         const axiosConfig: AxiosRequestConfig = {
             headers: {
                 Authorization: `Bearer ${this.token}`,
@@ -32,8 +31,7 @@ export default class FileUploader {
         let fileNames = [];
         files.getEntries().forEach(file => fileNames.push({"key": file.key}))
 
-        return await axios.post(startFilesUpload, classToPlain(fileNames), axiosConfig)
-            .then(ignored => draftId);
+        await axios.post(startFilesUpload, classToPlain(fileNames), axiosConfig);
     }
 
     /**
@@ -42,8 +40,7 @@ export default class FileUploader {
      * @param draftId
      */
     async uploadSingleFile(fileName: string, draftId: string): Promise<void> {
-
-        let binary = fs.readFileSync(`${this.temporaryDirectory}/${fileName}`);
+        const binary = fs.readFileSync(`${this.temporaryDirectory}/${fileName}`);
 
         const axiosConfig: AxiosRequestConfig = {
             headers: {
