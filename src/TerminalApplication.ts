@@ -17,14 +17,15 @@ const requestInit: RequestInit = {
 const baseUrl = "https://inveniordm.web.cern.ch"
 
 export async function init () {
-    const hitId = "z0717-4qm62";
-    const apiResponse: Hit  = await fetch(baseUrl + `/api/records/${hitId}`, requestInit)
-        .then(response => response.json())
-        // .then(json => json.hits)
-        .then(hit => plainToClass(Hit, hit))
+    const migrationIds = process.env.MIGRATION_IDS.split(",");
+    for (const hitId of migrationIds) {
+        const apiResponse: Hit = await fetch(baseUrl + `/api/records/${hitId}`, requestInit)
+            .then(response => response.json())
+            .then(hit => plainToClass(Hit, hit))
 
-    const hitExtractor = new HitExtractor(baseUrl, baseUrl);
-    hitExtractor.process(apiResponse, hitId)
+        const hitExtractor = new HitExtractor(baseUrl, baseUrl);
+        hitExtractor.process(apiResponse, hitId)
+    }
 }
 
 init()

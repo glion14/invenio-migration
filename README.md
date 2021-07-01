@@ -17,7 +17,7 @@ This should install all necessary dependecies for the application.
 1. Get your API keys for both Invenio instances you want to migrate between.
 2. Clone the project ```git clone https://github.com/glion14/invenio-migration.git```
 3. Create a ```.env``` file in the root directory of the application. 
-4. 4 variables which needs to be filled - ```SOURCE_HOST, TARGET_HOST, SOURCE_TOKEN, TARGET_TOKEN```.
+4. 5 variables which needs to be filled - ```SOURCE_HOST, TARGET_HOST, SOURCE_TOKEN, TARGET_TOKEN, MIGRATION_IDS```.
 
 Example:
 ```
@@ -25,6 +25,7 @@ SOURCE_HOST=https://test.researchdata.tuwien.ac.at
 TARGET_HOST=https://inveniordm.web.cern.ch
 SOURCE_TOKEN=token_for_tuwien_researchdata
 TARGET_TOKEN=cern_invenio_token
+MIGRATION_IDS=z0717-4qm62,a1498-k0ui5
 ``` 
 
 After those variables are set, run `npm run start`. This will start the migration.
