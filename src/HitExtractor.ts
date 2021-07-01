@@ -5,6 +5,7 @@ import axios, {AxiosRequestConfig, AxiosResponse} from "axios";
 import FileDownloader from "./FileDownloader";
 import RecordDraft from "./RecordDraft";
 import FileUploader from "./FileUploader";
+import {stat} from "fs";
 
 export default class HitExtractor {
     private token: string = process.env.SOURCE_TOKEN;
@@ -20,6 +21,7 @@ export default class HitExtractor {
         // check files and get entries to objects
         const fileLink = hit.getFileLink();
         const files: Files = await this.retrieveFileEntries(fileLink);
+        const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
 
         // download files one by one to local storage
         files.getEntries()
@@ -38,6 +40,14 @@ export default class HitExtractor {
             console.info(`Uploading file ${file.key}`);
             try {
                 await this.fileUploader.uploadSingleFile(file.key, pushedDraftId);
+                while (true) {
+                    await snooze(5000);
+                    const status = await this.fileUploader.checkStatus(file.key, pushedDraftId)
+                    console.info(status);
+                    if (status == "completed"){
+                        break;
+                    }
+                }
                 await this.fileUploader.confirmUpload(file.key, pushedDraftId);
             } catch (e) {
                 console.error(e);

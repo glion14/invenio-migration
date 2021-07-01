@@ -67,4 +67,21 @@ export default class FileUploader {
         return await axios.post(`${this.host}/api/records/${draftId}/draft/files/${fileName}/commit`, axiosConfig);
     }
 
+
+    /**
+     * Confirms upload of file
+     * @param fileName
+     * @param draftId
+     */
+    async checkStatus(fileName: string, draftId: string): Promise<string> {
+
+        const axiosConfig: AxiosRequestConfig = {
+            headers: {
+                Authorization: `Bearer ${this.token}`,
+            }
+        }
+        return await axios.get(`${this.host}/api/records/${draftId}/draft/files/${fileName}`, axiosConfig)
+            .then(response => response.data['status']);
+    }
+
 }
