@@ -1,8 +1,9 @@
-import fs from 'fs';
+import fs from "fs";
 import axios, {AxiosRequestConfig} from "axios";
 import Files from "./Files";
 import {plainToClass} from "class-transformer";
 import {ApiGateway} from "./ApiGateway";
+import path from "path";
 
 export default class FileDownloader extends ApiGateway {
 
@@ -49,16 +50,19 @@ export default class FileDownloader extends ApiGateway {
     }
 
     private createTmpDirectory(dirPath: string) {
-        if (fs.existsSync(dirPath)){
-            this.cleanUpTmpDirectory(dirPath)
+        if (!fs.existsSync(dirPath)){
+            fs.mkdirSync(dirPath);
         }
-
-        fs.mkdirSync(dirPath);
     }
 
     private cleanUpTmpDirectory(dirPath: string) {
         if (fs.existsSync(dirPath)) {
-            fs.rmdirSync(dirPath, { recursive: true });
+
+            fs.readdirSync(dirPath).forEach(file => {
+                fs.rmSync(path.join(dirPath, file), {force: true});
+            });
+
+            fs.rmdirSync(dirPath);
         }
     }
 }

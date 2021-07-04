@@ -2,6 +2,7 @@ import Record from "./Record";
 import Files from "./Files";
 import FileDownloader from "./FileDownloader";
 import FileUploader from "./FileUploader";
+import FileModel from "./FileModel";
 
 export default class FilesHandler {
     private readonly fileDownloader: FileDownloader;
@@ -12,7 +13,21 @@ export default class FilesHandler {
         this.fileUploader = new FileUploader();
     }
 
-    async process(sourceRecord: Record, draftRecordId: string) {
+    /**
+     * Handles files with cleanup afterwards
+     * @param sourceRecord
+     * @param draftRecordId
+     */
+    async handleFiles(sourceRecord: Record, draftRecordId: string) {
+
+        return this.process(sourceRecord, draftRecordId).then(ignored => {
+            console.debug("Cleaning up downloaded files")
+            //cleanup
+            this.fileDownloader.cleanUpDownloadedFiles();
+        })
+    }
+
+    async process(sourceRecord: Record, draftRecordId: string): Promise<void> {
         // check files and get entries to objects
         const fileLink = sourceRecord.getFileLink();
         const files: Files = await this.fileDownloader.retrieveFileEntries(fileLink);
@@ -25,31 +40,35 @@ export default class FilesHandler {
 
         console.info(`Fetched files metadata and preparing to download them`)
         // download files one by one to local storage
-        files.getEntries()
-            .forEach(file => this.fileDownloader.downloadSingleFile(file.key, sourceRecord.getId()))
+        for (const file of files.getEntries()) {
+            await this.fileDownloader.downloadSingleFile(file.key, sourceRecord.getId());
+        }
 
         console.info("Downloaded all files")
-
+        let confirmedPromises: Promise<FileModel>[] = [];
         await this.fileUploader.startFileUploading(files, draftRecordId);
         for (const file of files.getEntries()) {
             console.info(`Uploading file ${file.key}`);
             try {
                 await this.fileUploader.uploadSingleFile(file.key, draftRecordId);
-                const uploadConfirmed = await this.fileUploader.confirmUpload(file.key, draftRecordId)
+                const confirmPromise: Promise<FileModel> = this.fileUploader.confirmUpload(file.key, draftRecordId)
+                confirmedPromises.push(confirmPromise);
+                const uploadConfirmed = await confirmPromise;
                 const checksumEquals = this.validateChecksum(file.checksum, uploadConfirmed.checksum);
 
                 if(!checksumEquals){
-                    console.error(`Checksums are not equal for files ${file.key} and ${uploadConfirmed.key} on record draft ${draftRecordId}`)
-                    break;
+                    console.error(`ERROR: checksums are not equal for files ${file.key} and ${uploadConfirmed.key} on record draft ${draftRecordId}`)
+                    return Promise.reject("Checksums validation failed")
                 } else {
-                    console.info(`Source and Target checksums are OK for file ${file.key}`)
+                    console.info(`Checksums are OK for file ${file.key}`)
                 }
             } catch (e) {
                 console.error(e);
             }
         }
-        //cleanup
-        this.fileDownloader.cleanUpDownloadedFiles();
+
+        return await Promise.all(confirmedPromises)
+            .then(() => {});
     }
 
     validateChecksum(originalCheckSum: string, uploadedCheckSum: string ) {

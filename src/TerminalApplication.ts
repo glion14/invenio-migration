@@ -25,13 +25,20 @@ export async function init () {
         const draftRecordId = await recordActions.pushInitialDraftRecord(recordDraft)
         console.info(`Created draft record in target repository with id ${draftRecordId}`)
 
+        let uploadFailed = false;
         if(sourceRecord.getFiles().enabled){
-            await filesHandler.process(sourceRecord, draftRecordId)
+            await filesHandler.handleFiles(sourceRecord, draftRecordId).catch(error => {
+                console.error(`Failed to upload all files, aborting migration and not publishing record. Error: ${error}`);
+                uploadFailed = true;
+            })
         } else {
             console.info('Files are disabled, skipping them')
         }
 
-        const publishedRecord = await recordActions.publishDraftRecord(draftRecordId);
+
+        if(!uploadFailed){
+            const publishedRecord = await recordActions.publishDraftRecord(draftRecordId);
+        }
 
         //validation of source record vs target record
     }

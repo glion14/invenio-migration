@@ -4,6 +4,7 @@ import Files from "./Files";
 import {classToPlain, plainToClass} from "class-transformer";
 import FileModel from "./FileModel";
 import {ApiGateway} from "./ApiGateway";
+import path from "path";
 
 export default class FileUploader extends ApiGateway {
     private readonly temporaryDirectory = './tmp'
@@ -37,7 +38,7 @@ export default class FileUploader extends ApiGateway {
      * @param draftId
      */
     async uploadSingleFile(fileName: string, draftId: string): Promise<void> {
-        const binary = fs.readFileSync(`${this.temporaryDirectory}/${fileName}`);
+        const binary = fs.readFileSync(path.join(this.temporaryDirectory, fileName),);
 
         const axiosConfig: AxiosRequestConfig = {
             headers: {
