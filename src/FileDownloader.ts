@@ -6,6 +6,7 @@ import {ApiGateway} from "./ApiGateway";
 
 export default class FileDownloader extends ApiGateway {
 
+    private temporaryDirectory = "./tmp";
     /**
      * Downloads file binary, creates temporary directory and writes the binary to it with the same filename.
      * @param filename
@@ -21,12 +22,9 @@ export default class FileDownloader extends ApiGateway {
         const filesPath = `${this.sourceHost}/api/records/${hitId}/files/${filename}/content`;
         const binary = await axios.get(filesPath, axiosConfig);
 
-        const temporaryDirectory = "./tmp"
-        if (!fs.existsSync(temporaryDirectory)){
-            fs.mkdirSync(temporaryDirectory);
-        }
+        this.createTmpDirectory(this.temporaryDirectory)
 
-        return fs.writeFileSync(`${temporaryDirectory}/${filename}`, binary.data);
+        return fs.writeFileSync(`${this.temporaryDirectory}/${filename}`, binary.data);
     }
 
     /**
@@ -43,4 +41,24 @@ export default class FileDownloader extends ApiGateway {
             .then(response => plainToClass(Files, response.data));
     }
 
+    /**
+     * Cleans up downloaded files on machine
+     */
+    cleanUpDownloadedFiles() {
+        this.cleanUpTmpDirectory(this.temporaryDirectory);
+    }
+
+    private createTmpDirectory(dirPath: string) {
+        if (fs.existsSync(dirPath)){
+            this.cleanUpTmpDirectory(dirPath)
+        }
+
+        fs.mkdirSync(dirPath);
+    }
+
+    private cleanUpTmpDirectory(dirPath: string) {
+        if (fs.existsSync(dirPath)) {
+            fs.rmdirSync(dirPath, { recursive: true });
+        }
+    }
 }

@@ -1,11 +1,11 @@
-import Hit, {Access, HitFiles, Metadata} from "./Hit";
+import Record, {Access, HitFiles, Metadata} from "./Record";
 
 export default class RecordDraft {
     private access: { record: string; files: string; embargo: {} };
     private files: { defaultPreview: string; enabled: string; order: any[] };
     private metadata: Metadata;
 
-    constructor(record:Hit) {
+    constructor(record:Record) {
 
         this.access = RecordDraft.transformAccess(record.getAccess());
         this.files = RecordDraft.transformFiles(record.getFiles())

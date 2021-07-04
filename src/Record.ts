@@ -1,5 +1,5 @@
 
-export default class Hit {
+export default class Record {
     private pid: any;
     private access: Access;
     private created: string;
