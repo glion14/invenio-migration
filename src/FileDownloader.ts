@@ -14,14 +14,9 @@ export default class FileDownloader extends ApiGateway {
      * @param hitId
      */
     async downloadSingleFile(filename: string, hitId: string): Promise<void> {
-        const axiosConfig: AxiosRequestConfig = {
-            headers: {
-                Authorization: `Bearer ${this.sourceToken}`
-            }
-        }
 
         const filesPath = `${this.sourceHost}/api/records/${hitId}/files/${filename}/content`;
-        const binary = await axios.get(filesPath, axiosConfig);
+        const binary = await axios.get(filesPath);
 
         this.createTmpDirectory(this.temporaryDirectory)
 
@@ -33,12 +28,7 @@ export default class FileDownloader extends ApiGateway {
      * @param fileLink
      */
     async retrieveFileEntries(fileLink: string): Promise<Files> {
-        const axiosConfig: AxiosRequestConfig = {
-            headers: {
-                Authorization: `Bearer ${this.sourceToken}`
-            }
-        }
-        return await axios.get(fileLink, axiosConfig)
+        return await axios.get(fileLink)
             .then(response => plainToClass(Files, response.data));
     }
 

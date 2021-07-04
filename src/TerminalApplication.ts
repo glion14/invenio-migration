@@ -35,7 +35,6 @@ export async function init () {
             console.info('Files are disabled, skipping them')
         }
 
-
         if(!uploadFailed){
             const publishedRecord = await recordActions.publishDraftRecord(draftRecordId);
 
@@ -47,13 +46,6 @@ export async function init () {
             console.info(`Successfully publisher record ${draftRecordId}`)
         }
     }
-
     console.info(`Successfully migrated all records. Shutting down`)
 }
-
-
-
-
-
-
 init()

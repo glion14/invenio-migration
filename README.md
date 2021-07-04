@@ -1,5 +1,5 @@
 # Invenio migration tool
-A tool which let's you migrate content between two different Invenio instances.
+A tool which let's you automatically migrate records between two different Invenio instances.
 
 # Description
 
@@ -7,8 +7,11 @@ This tool performs migration of single or array of records from `source reposito
 It migrates all metadata and files associated with each record. Performs checksum validation on all files uploaded to target repository 
 and validates metadata against the source record. When all checks are satisfied it publishes the new record in `target repository`.
 
-Files checksum validation is only soft check, it will not stop the migration only log as warning. Validation on draft record metadata is a strict check
-and failing this validation will result in record not being published. Such failed draft is **not** deleted by this tool to allow for debugging
+Uploaded files checksum validation is only **soft check**, meaning it will not stop the migration only log as warning.
+
+Validation on draft record metadata is a strict check and failing this validation will result in record not being published. 
+
+Such failed draft is **not** deleted by this tool to allow for debugging
 and further investigation.
 
 > Please always test and verify your migration on sandbox/staging environment.
@@ -26,17 +29,16 @@ This should install all necessary dependecies for the application.
 
 # Usage
 1. Get your API keys for both Invenio instances you want to migrate between.
-1. Make sure your API has enough permissions to upload and create new records.  
+1. Make sure your API key for target repository has enough permissions to upload files and create new records.  
 1. Clone the project ```git clone https://github.com/glion14/invenio-migration.git```
 1. Create a ```.env``` file in the root directory of the application. 
-1. 5 variables which needs to be filled - ```SOURCE_HOST, TARGET_HOST, SOURCE_TOKEN, TARGET_TOKEN, MIGRATION_IDS```.
+1. 4 variables which needs to be filled - ```SOURCE_HOST, TARGET_HOST, TARGET_TOKEN, MIGRATION_IDS```.
 
 Example:
 ```
 SOURCE_HOST=https://test.researchdata.tuwien.ac.at
 TARGET_HOST=https://inveniordm.web.cern.ch
-SOURCE_TOKEN=token_for_tuwien_researchdata
-TARGET_TOKEN=cern_invenio_token
+TARGET_TOKEN=YOUR_CERN_INVENIO_TOKEN
 MIGRATION_IDS=eaag3-tb638,7vm1m-z4t47
 ``` 
 
@@ -53,7 +55,3 @@ Please make sure to update tests as appropriate.
 
 # License
 This project is licensed under the [GNU General Public License v3.0](https://choosealicense.com/licenses/gpl-3.0/) License - see the LICENSE file for details
-
-# Possible future work
-
-- Making checksum validation on files upload more resilient as it's currently not really stable.
