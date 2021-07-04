@@ -1,26 +1,13 @@
-interface FileEntry {
-    key: string;
-    created: string;
-    updated: string;
-    checksum: string;
-    mimetype: string;
-    size: number;
-    metadata: any;
-    fileId: string;
-    versionId: string;
-    bucketId: string;
-    storageClass: string;
-    links: any;
-}
+import FileModel from "./FileModel";
 
 export default class Files {
     private enabled: boolean;
     private links: any;
-    private entries: FileEntry[];
+    private entries: FileModel[];
     private defaultPreview: string;
     private order: any[];
 
-    getEntries(): FileEntry[] {
+    getEntries(): FileModel[] {
         return this.entries;
     }
 }

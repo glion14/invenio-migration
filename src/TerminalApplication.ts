@@ -23,8 +23,8 @@ export async function init () {
             .then(response => response.json())
             .then(hit => plainToClass(Hit, hit))
 
-        const hitExtractor = new HitExtractor(baseUrl, baseUrl);
-        hitExtractor.process(apiResponse, hitId)
+        const hitExtractor = new HitExtractor();
+        await hitExtractor.process(apiResponse, hitId)
     }
 }
 

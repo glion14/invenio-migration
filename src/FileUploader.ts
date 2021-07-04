@@ -1,16 +1,13 @@
 import fs from 'fs';
-import axios, {AxiosRequestConfig} from "axios";
+import axios, {AxiosRequestConfig, AxiosResponse} from "axios";
 import Files from "./Files";
-import {classToPlain} from "class-transformer";
+import {classToPlain, plainToClass} from "class-transformer";
+import FileModel from "./FileModel";
+import {ApiGateway} from "./ApiGateway";
 
-export default class FileUploader {
-    private readonly host;
-    private readonly token = process.env.SOURCE_TOKEN;
+export default class FileUploader extends ApiGateway {
     private readonly temporaryDirectory = './tmp'
-
-    constructor(hostUrl: string) {
-        this.host = hostUrl
-    }
+    private snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
 
     /**
      * Starts an upload of all files by creating references for them,
@@ -21,12 +18,12 @@ export default class FileUploader {
     async startFileUploading(files: Files, draftId: string): Promise<void> {
         const axiosConfig: AxiosRequestConfig = {
             headers: {
-                Authorization: `Bearer ${this.token}`,
+                Authorization: `Bearer ${this.targetToken}`,
                 'Content-Type': 'application/json'
             }
         }
 
-        const startFilesUpload = `${this.host}/api/records/${draftId}/draft/files`;
+        const startFilesUpload = `${this.targetHost}/api/records/${draftId}/draft/files`;
 
         let fileNames = [];
         files.getEntries().forEach(file => fileNames.push({"key": file.key}))
@@ -44,27 +41,42 @@ export default class FileUploader {
 
         const axiosConfig: AxiosRequestConfig = {
             headers: {
-                Authorization: `Bearer ${this.token}`,
+                Authorization: `Bearer ${this.targetToken}`,
                 'content-type': 'application/octet-stream'
             }
         }
 
-        return await axios.put(`${this.host}/api/records/${draftId}/draft/files/${fileName}/content`, binary, axiosConfig);
+        return await axios.put(`${this.targetHost}/api/records/${draftId}/draft/files/${fileName}/content`, binary, axiosConfig);
     }
 
     /**
-     * Confirms upload of file
+     * Confirms upload of file on while loop. As we often get 403 when the object is not fully uploaded.
      * @param fileName
      * @param draftId
      */
-    async confirmUpload(fileName: string, draftId: string): Promise<void> {
+    async confirmUpload(fileName: string, draftId: string): Promise<FileModel> {
+
+        while (true) {
+            await this.snooze(1000);
+            const response = await this.executeUploadCommit(fileName, draftId).catch(error => {
+                console.debug(error)
+                return null;
+            })
+            if(response != null && response.status === 200) {
+                return plainToClass(FileModel, response.data);
+            }
+        }
+    }
+
+
+    private async executeUploadCommit(fileName: string, draftId: string): Promise<AxiosResponse> {
 
         const axiosConfig: AxiosRequestConfig = {
             headers: {
-                Authorization: `Bearer ${this.token}`,
+                Authorization: `Bearer ${this.targetToken}`,
             }
         }
-        return await axios.post(`${this.host}/api/records/${draftId}/draft/files/${fileName}/commit`, axiosConfig);
+        return await axios.post(`${this.targetHost}/api/records/${draftId}/draft/files/${fileName}/commit`,{}, axiosConfig);
     }
 
 
@@ -77,10 +89,10 @@ export default class FileUploader {
 
         const axiosConfig: AxiosRequestConfig = {
             headers: {
-                Authorization: `Bearer ${this.token}`,
+                Authorization: `Bearer ${this.targetToken}`,
             }
         }
-        return await axios.get(`${this.host}/api/records/${draftId}/draft/files/${fileName}`, axiosConfig)
+        return await axios.get(`${this.targetHost}/api/records/${draftId}/draft/files/${fileName}`, axiosConfig)
             .then(response => response.data['status']);
     }
 

@@ -1,83 +1,60 @@
-import {classToPlain, plainToClass} from "class-transformer";
 import Hit from "./Hit";
 import Files from "./Files";
-import axios, {AxiosRequestConfig, AxiosResponse} from "axios";
 import FileDownloader from "./FileDownloader";
 import RecordDraft from "./RecordDraft";
 import FileUploader from "./FileUploader";
-import {stat} from "fs";
+import {DraftRecordActions} from "./DraftRecordActions";
+import FileModel from "./FileModel";
 
 export default class HitExtractor {
-    private token: string = process.env.SOURCE_TOKEN;
     private readonly fileDownloader: FileDownloader;
     private readonly fileUploader: FileUploader;
+    private readonly draftActions: DraftRecordActions;
 
-    constructor(sourceHost: string, targetHost: string) {
-        this.fileDownloader = new FileDownloader(sourceHost);
-        this.fileUploader = new FileUploader(targetHost);
+    constructor() {
+        this.fileDownloader = new FileDownloader();
+        this.fileUploader = new FileUploader();
+        this.draftActions = new DraftRecordActions();
     }
 
     async process(hit: Hit, hitId: string) {
         // check files and get entries to objects
         const fileLink = hit.getFileLink();
-        const files: Files = await this.retrieveFileEntries(fileLink);
-        const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
+        const files: Files = await this.fileDownloader.retrieveFileEntries(fileLink);
 
+        console.info(`Fetched files metadata and preparing to download them`)
         // download files one by one to local storage
         files.getEntries()
             .forEach(file => this.fileDownloader.downloadSingleFile(file.key, hitId))
 
-
+        console.info("Downloaded all files")
         // start creating a draft with Hit object
         const recordDraft = new RecordDraft(hit)
-        const baseUrl = "https://inveniordm.web.cern.ch/api/records"
 
-
-        const pushedDraftId = await this.pushInitialDraftRecord(recordDraft, baseUrl);
+        const pushedDraftId = await this.draftActions.pushInitialDraftRecord(recordDraft);
+        console.info(`Created new draft record in target repository with id ${pushedDraftId}`)
         await this.fileUploader.startFileUploading(files, pushedDraftId);
 
         for (const file of files.getEntries()) {
             console.info(`Uploading file ${file.key}`);
             try {
                 await this.fileUploader.uploadSingleFile(file.key, pushedDraftId);
-                while (true) {
-                    await snooze(5000);
-                    const status = await this.fileUploader.checkStatus(file.key, pushedDraftId)
-                    console.info(status);
-                    if (status == "completed"){
-                        break;
-                    }
+                const uploadConfirmed = await this.fileUploader.confirmUpload(file.key, pushedDraftId)
+                const checksumEquals = this.validateChecksum(file.checksum, uploadConfirmed.checksum);
+
+                if(!checksumEquals){
+                    console.error(`Checksums are not equal for files ${file.key} and ${uploadConfirmed.key} on record draft ${pushedDraftId}`)
+                    break;
                 }
-                await this.fileUploader.confirmUpload(file.key, pushedDraftId);
             } catch (e) {
                 console.error(e);
             }
-
         }
 
-        // verify files metadata
+        //after all files are uploaded we publish the record
     }
 
-    async retrieveFileEntries(fileLink: string): Promise<Files> {
-        const axiosConfig: AxiosRequestConfig = {
-            headers: {
-                Authorization: `Bearer ${this.token}`
-            }
-        }
-        return await axios.get(fileLink, axiosConfig)
-            .then(response => plainToClass(Files, response.data));
-    }
-
-    async pushInitialDraftRecord(recordDraft: RecordDraft, newRepoUrl: string): Promise<string> {
-        const axiosPostConfig: AxiosRequestConfig = {
-            headers: {
-                Authorization: `Bearer ${this.token}`,
-                'Content-Type': 'application/json'
-            }
-        }
-
-        return await axios.post(newRepoUrl, classToPlain(recordDraft), axiosPostConfig)
-            .then(response => plainToClass(Hit, response.data))
-            .then(record => record.getId())
+    validateChecksum(originalCheckSum: string, uploadedCheckSum: string ) {
+        return originalCheckSum === uploadedCheckSum
     }
 }
