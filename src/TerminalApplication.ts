@@ -2,13 +2,13 @@ import 'reflect-metadata';
 import FilesHandler from "./FilesHandler";
 import {RecordActions} from "./RecordActions";
 import RecordDraft from "./RecordDraft";
+import Validator from "./Validator";
 
 "use strict";
 require('dotenv').config()
 
 global.fetch = require("node-fetch");
 
-const baseUrl = "https://inveniordm.web.cern.ch"
 const filesHandler = new FilesHandler();
 const recordActions = new RecordActions();
 
@@ -38,12 +38,18 @@ export async function init () {
 
         if(!uploadFailed){
             const publishedRecord = await recordActions.publishDraftRecord(draftRecordId);
+
+            let metadataEquals = Validator.validateMetadata(sourceRecord, publishedRecord);
+            if(!metadataEquals){
+                console.debug(`Metadata are not same, aborting migration and not publishing the record`)
+                return;
+            }
+            console.info(`Successfully publisher record ${draftRecordId}`)
         }
-
-        //validation of source record vs target record
     }
-}
 
+    console.info(`Successfully migrated all records. Shutting down`)
+}
 
 
 

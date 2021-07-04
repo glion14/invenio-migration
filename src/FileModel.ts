@@ -12,5 +12,4 @@ export default class FileModel {
     fileId: string;
     storageClass: string;
     metadata: any;
-
 }
