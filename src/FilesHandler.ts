@@ -57,8 +57,7 @@ export default class FilesHandler {
                 const checksumEquals = this.validateChecksum(file.checksum, uploadConfirmed.checksum);
 
                 if(!checksumEquals){
-                    console.error(`ERROR: checksums are not equal for files ${file.key} and ${uploadConfirmed.key} on record draft ${draftRecordId}`)
-                    return Promise.reject("Checksums validation failed")
+                    console.error(`WARN: checksums are not equal with source for file ${file.key} on draft record ${draftRecordId}`)
                 } else {
                     console.info(`Checksums are OK for file ${file.key}`)
                 }
