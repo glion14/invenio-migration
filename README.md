@@ -42,6 +42,12 @@ TARGET_TOKEN=YOUR_CERN_INVENIO_TOKEN
 MIGRATION_IDS=eaag3-tb638,7vm1m-z4t47
 ``` 
 
+## Sunny scenario example
+![plot](./doc/sunnyscenario.png)
+
+## Metadata failed to compare
+![plot](./doc/metadatafailed.png)
+
 After those variables are set, run `npm run start`. This will start the migration.
 
 # Support
